@@ -19,11 +19,17 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 
 public class MainActivity extends ActionBarActivity {
+    private static String TAG = MainActivity.class.getSimpleName();
 
     private static String SERVER_URL = "http://ajax.googleapis.com/ajax/services/search/news";
     private static Integer PAGE_SIZE = 6;
@@ -94,7 +100,8 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         protected JSONObject doInBackground(String... query) {
-            return makeAndroidRequest(query[0]);
+//            return makeAndroidRequest(query[0]);
+            return makeHttpRequest(query[0]);
         }
 
 
@@ -147,21 +154,32 @@ public class MainActivity extends ActionBarActivity {
         }
 
         private JSONObject makeHttpRequest(String query) {
-//            final String urlStr = getUrl(query, 1);
-//            URL url = null;
-//            try {
-//                url = new URL(urlStr);
-//
-//                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-//
-//                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-//
-//                readStream(in);
-//            } catch (MalformedURLException e) {
-//                e.printStackTrace();
-//            } finally {
-//                urlConnection.disconnect();
-//            }
+            final String urlStr = getUrl(query, 1);
+            URL url = null;
+            HttpURLConnection urlConnection = null;
+            try {
+                url = new URL(urlStr);
+
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+
+                String responseData = Streams.read(in);
+                return new JSONObject(responseData);
+
+            } catch (MalformedURLException e) {
+                Log.e(TAG, e.getMessage());
+
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
+
+            } finally {
+                urlConnection.disconnect();
+
+            }
             return null;
         }
 
